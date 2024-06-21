@@ -181,7 +181,7 @@ class MyAccountTab extends StatelessWidget {
                                 });
                               }
                             } else if (value == 'delete') {
-                              _deleteFeedItem(feedItem.id, context);
+                              _deletePost(context, feedItem);
                             }
                           },
                           itemBuilder: (BuildContext context) {
@@ -250,48 +250,71 @@ class MyAccountTab extends StatelessWidget {
       children: [
         Column(
           children: [
-            IconButton(
-              iconSize: 28,
-              icon: Icon(
-                feedItem.reactions[userId] == 'like'
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: feedItem.reactions[userId] == 'like' ? Colors.red : null,
+            GestureDetector(
+              onTap: () => _toggleReaction(feedItem, 'like', setState),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: Icon(
+                  feedItem.reactions[userId] == 'like'
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  key: ValueKey(feedItem.reactions[userId] == 'like'),
+                  color:
+                      feedItem.reactions[userId] == 'like' ? Colors.red : null,
+                  size: 28,
+                ),
               ),
-              onPressed: () => _toggleReaction(feedItem, 'like', setState),
             ),
             Text('${feedItem.likesCount}'),
           ],
         ),
         Column(
           children: [
-            IconButton(
-              iconSize: 28,
-              icon: Icon(
-                feedItem.reactions[userId] == 'dope'
-                    ? Icons.whatshot
-                    : Icons.whatshot_outlined,
-                color:
-                    feedItem.reactions[userId] == 'dope' ? Colors.orange : null,
+            GestureDetector(
+              onTap: () => _toggleReaction(feedItem, 'dope', setState),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: Icon(
+                  feedItem.reactions[userId] == 'dope'
+                      ? Icons.whatshot
+                      : Icons.whatshot_outlined,
+                  key: ValueKey(feedItem.reactions[userId] == 'dope'),
+                  color: feedItem.reactions[userId] == 'dope'
+                      ? Colors.orange
+                      : null,
+                  size: 28,
+                ),
               ),
-              onPressed: () => _toggleReaction(feedItem, 'dope', setState),
             ),
             Text('${feedItem.dopeCount}'),
           ],
         ),
         Column(
           children: [
-            IconButton(
-              iconSize: 28,
-              icon: Icon(
-                feedItem.reactions[userId] == 'scissor'
-                    ? Icons.cut
-                    : Icons.cut_outlined,
-                color: feedItem.reactions[userId] == 'scissor'
-                    ? Colors.blue
-                    : null,
+            GestureDetector(
+              onTap: () => _toggleReaction(feedItem, 'scissor', setState),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return ScaleTransition(scale: animation, child: child);
+                },
+                child: Icon(
+                  feedItem.reactions[userId] == 'scissor'
+                      ? Icons.cut
+                      : Icons.cut_outlined,
+                  key: ValueKey(feedItem.reactions[userId] == 'scissor'),
+                  color: feedItem.reactions[userId] == 'scissor'
+                      ? Colors.blue
+                      : null,
+                  size: 28,
+                ),
               ),
-              onPressed: () => _toggleReaction(feedItem, 'scissor', setState),
             ),
             Text('${feedItem.scissorCount}'),
           ],
@@ -402,27 +425,73 @@ class MyAccountTab extends StatelessWidget {
     });
   }
 
-  void _deleteFeedItem(String feedItemId, BuildContext context) {
-    FirebaseFirestore.instance
-        .collection('feedItems')
-        .doc(feedItemId)
-        .delete()
-        .then((_) {
-      print('Feed item deleted successfully');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feed item deleted successfully'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }).catchError((error) {
-      print('Failed to delete feed item: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to delete feed item'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    });
+  void _deletePost(BuildContext context, FeedItem feedItem) async {
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Row(
+            children: [
+              Text(
+                "Confirm Deletion",
+                style: TextStyle(color: Color(0xFF50727B)),
+              ),
+            ],
+          ),
+          content: const Text('Are you sure you want to delete this post?'),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF50727B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color.fromARGB(255, 142, 33, 25),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete) {
+      FirebaseFirestore.instance
+          .collection('feedItems')
+          .doc(feedItem.id)
+          .delete()
+          .then((_) {
+        print('Feed item deleted successfully');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Feed item deleted successfully'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }).catchError((error) {
+        print('Failed to delete feed item: $error');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete feed item'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
+    }
   }
 }

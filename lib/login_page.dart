@@ -56,14 +56,22 @@ class _LoginPageState extends State<LoginPage>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       const SizedBox(height: 435),
-                      _buildTextField(emailController, 'Email',
-                          TextInputType.emailAddress, _emailError),
+                      _buildTextField(
+                        emailController,
+                        'Email',
+                        TextInputType.emailAddress,
+                        _emailError,
+                      ),
                       const SizedBox(height: 20),
-                      _buildTextField(passwordController, 'Password',
-                          TextInputType.visiblePassword, '',
-                          isPassword: true,
-                          isPasswordVisible: _passwordVisible,
-                          togglePasswordVisibility: _togglePasswordVisibility),
+                      _buildTextField(
+                        passwordController,
+                        'Password',
+                        TextInputType.visiblePassword,
+                        '',
+                        isPassword: true,
+                        isPasswordVisible: _passwordVisible,
+                        togglePasswordVisibility: _togglePasswordVisibility,
+                      ),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _isLoading ? null : _login,
@@ -73,25 +81,25 @@ class _LoginPageState extends State<LoginPage>
                         ),
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor:
-                              const Color(0xFF50727B), // Text color
+                          backgroundColor: const Color(0xFF50727B),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                          height: 20), // Increased space between buttons
+                      const SizedBox(height: 20),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => RegistrationPage()));
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RegistrationPage()),
+                          );
                         },
-                        child: const Text("Register",
-                            style:
-                                TextStyle(fontSize: 16, color: Colors.white)),
+                        child: const Text(
+                          "Register",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -99,7 +107,7 @@ class _LoginPageState extends State<LoginPage>
               ),
             ),
           ),
-          if (_isLoading) // Show loader overlay if loading
+          if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
               child: const Center(
@@ -111,11 +119,15 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      TextInputType keyboardType, String errorText,
-      {bool isPassword = false,
-      bool isPasswordVisible = false,
-      VoidCallback? togglePasswordVisibility}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    TextInputType keyboardType,
+    String errorText, {
+    bool isPassword = false,
+    bool isPasswordVisible = false,
+    VoidCallback? togglePasswordVisibility,
+  }) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.8,
       child: TextField(
@@ -130,15 +142,17 @@ class _LoginPageState extends State<LoginPage>
           fillColor: Colors.white.withOpacity(0.4),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
           focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.white),
-              borderRadius: BorderRadius.circular(10.0)),
+            borderSide: const BorderSide(color: Colors.white),
+            borderRadius: BorderRadius.circular(10.0),
+          ),
           errorText: errorText.isNotEmpty ? errorText : null,
           suffixIcon: isPassword
               ? IconButton(
-                  icon: Icon(isPasswordVisible
-                      ? Icons.visibility
-                      : Icons.visibility_off),
-                  onPressed: togglePasswordVisibility)
+                  icon: Icon(
+                    isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: togglePasswordVisibility,
+                )
               : null,
         ),
       ),
@@ -165,42 +179,56 @@ class _LoginPageState extends State<LoginPage>
     });
 
     try {
-      await AuthService()
-          .signIn(emailController.text.trim(), passwordController.text.trim());
-      // Navigate to the home screen if successful, and prevent back navigation to login
+      await AuthService().signIn(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      );
+      // Ensure the widget is still mounted before navigating
+      if (!mounted) return;
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => SuccessPage()));
+        context,
+        MaterialPageRoute(builder: (context) => SuccessPage()),
+      );
     } catch (e) {
       String errorMessage = e.toString();
       if (errorMessage.contains('Account is disabled')) {
         _showErrorDialog(
-            "Your account has been disabled. Please contact support for assistance.",
-            titleColor: const Color.fromARGB(255, 142, 33, 25),
-            backgroundColor: Colors.red.shade100,
-            icon: Icons.block);
+          "Your account has been disabled. Please contact support for assistance.",
+          titleColor: const Color.fromARGB(255, 142, 33, 25),
+          backgroundColor: Colors.red.shade100,
+          icon: Icons.block,
+        );
       } else if (errorMessage.contains('Too many attempts. Please wait')) {
-        _showErrorDialog("Too many attempts. Try again in 30 seconds.",
-            titleColor: Colors.orange,
-            backgroundColor: Colors.orange.shade100,
-            icon: Icons.warning);
+        _showErrorDialog(
+          "Too many attempts. Try again in 30 seconds.",
+          titleColor: Colors.orange,
+          backgroundColor: Colors.orange.shade100,
+          icon: Icons.warning,
+        );
       } else {
         _showErrorDialog(
-            "Failed to login. Please check your credentials and try again.",
-            titleColor: const Color.fromARGB(255, 142, 33, 25),
-            backgroundColor: Colors.red.shade100,
-            icon: Icons.error);
+          "Failed to login. Please check your credentials and try again.",
+          titleColor: const Color.fromARGB(255, 142, 33, 25),
+          backgroundColor: Colors.red.shade100,
+          icon: Icons.error,
+        );
       }
     } finally {
-      setState(() {
-        _isLoading = false; // Stop loading
-      });
+      // Ensure the widget is still mounted before calling setState
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Stop loading
+        });
+      }
     }
   }
 
-  void _showErrorDialog(String message,
-      {required Color titleColor,
-      required Color backgroundColor,
-      required IconData icon}) {
+  void _showErrorDialog(
+    String message, {
+    required Color titleColor,
+    required Color backgroundColor,
+    required IconData icon,
+  }) {
     _animationController.reset();
     _animationController.forward();
     showDialog(

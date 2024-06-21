@@ -216,13 +216,20 @@ class _FeedTabState extends State<FeedTab> {
     final userId = currentUser.uid;
     final isActive = feedItem.reactions[userId] == reactionType;
 
-    return IconButton(
-      iconSize: 28,
-      icon: Icon(
-        isActive ? activeIcon : inactiveIcon,
-        color: isActive ? activeColor : null,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return ScaleTransition(scale: animation, child: child);
+      },
+      child: GestureDetector(
+        key: ValueKey(isActive), // Key for AnimatedSwitcher
+        onTap: () => _toggleReaction(feedItem, reactionType),
+        child: Icon(
+          isActive ? activeIcon : inactiveIcon,
+          color: isActive ? activeColor : null,
+          size: 28,
+        ),
       ),
-      onPressed: () => _toggleReaction(feedItem, reactionType),
     );
   }
 

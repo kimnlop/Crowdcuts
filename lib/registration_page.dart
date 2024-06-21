@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors, use_build_context_synchronously, sort_child_properties_last
-
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
 import 'database_service.dart';
@@ -42,100 +40,77 @@ class _RegistrationPageState extends State<RegistrationPage> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/crowdcutsbg.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    children: <Widget>[
-                      SizedBox(height: 400),
-                      _buildTextField(
-                        emailController,
-                        'Email',
-                        TextInputType.emailAddress,
-                        _emailError,
-                        RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]+$'),
-                      ),
-                      SizedBox(height: 20),
-                      _buildTextField(
-                        userNameController,
-                        'Username',
-                        TextInputType.text,
-                        _nameError,
-                        RegExp(r'^[a-zA-Z0-9]+$'), // No spaces allowed
-                      ),
-                      SizedBox(height: 20),
-                      _buildTextField(
-                        passwordController,
-                        'Password',
-                        TextInputType.visiblePassword,
-                        _passwordError,
-                        null,
-                        isPassword: true,
-                        isPasswordVisible: _passwordVisible,
-                        togglePasswordVisibility: () => setState(
-                            () => _passwordVisible = !_passwordVisible),
-                      ),
-                      SizedBox(height: 20),
-                      _buildTextField(
-                        confirmPasswordController,
-                        'Confirm Password',
-                        TextInputType.visiblePassword,
-                        _confirmPasswordError,
-                        null,
-                        isPassword: true,
-                        isPasswordVisible: _confirmPasswordVisible,
-                        togglePasswordVisibility: () => setState(() =>
-                            _confirmPasswordVisible = !_confirmPasswordVisible),
-                      ),
-                      SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed:
-                            (!_isFormValid || _isLoading) ? null : _register,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 9.0),
-                          child: Text(
-                            'Register',
-                            style: TextStyle(fontSize: 15),
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Color(0xFF50727B), // Text color
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          "Back to Login",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                      ),
-                    ],
+          _buildBackground(),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                children: <Widget>[
+                  SizedBox(height: 400),
+                  _buildTextField(
+                    emailController,
+                    'Email',
+                    TextInputType.emailAddress,
+                    _emailError,
+                    RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]+$'),
                   ),
-                ),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    userNameController,
+                    'Username',
+                    TextInputType.text,
+                    _nameError,
+                    RegExp(r'^[a-zA-Z0-9]{2,15}$'), // No spaces, 2-15 chars
+                  ),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    passwordController,
+                    'Password',
+                    TextInputType.visiblePassword,
+                    _passwordError,
+                    null,
+                    isPassword: true,
+                    isPasswordVisible: _passwordVisible,
+                    togglePasswordVisibility: () =>
+                        setState(() => _passwordVisible = !_passwordVisible),
+                  ),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    confirmPasswordController,
+                    'Confirm Password',
+                    TextInputType.visiblePassword,
+                    _confirmPasswordError,
+                    null,
+                    isPassword: true,
+                    isPasswordVisible: _confirmPasswordVisible,
+                    togglePasswordVisibility: () => setState(() =>
+                        _confirmPasswordVisible = !_confirmPasswordVisible),
+                  ),
+                  SizedBox(height: 30),
+                  _buildRegisterButton(),
+                  SizedBox(height: 20),
+                  _buildBackToLoginButton(),
+                ],
               ),
             ),
           ),
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: Center(child: CircularProgressIndicator()),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBackground() {
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/crowdcutsbg.png"),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
@@ -173,54 +148,75 @@ class _RegistrationPageState extends State<RegistrationPage> {
               )
             : null,
       ),
-      onChanged: (value) {
-        if (label == 'Username') {
-          controller.text = value.replaceAll(' ', '');
-          controller.selection = TextSelection.fromPosition(
-              TextPosition(offset: controller.text.length));
-        }
-        _validateField(label, value);
-      },
+      onChanged: (value) => _validateField(label, value),
     );
   }
 
   void _validateField(String label, String value) {
     setState(() {
-      if (label == 'Email' &&
-          !RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]+$').hasMatch(value)) {
-        _emailError = 'Invalid email format';
-      } else if (label == 'Email') {
-        _emailError = '';
+      switch (label) {
+        case 'Email':
+          _emailError =
+              RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]+$').hasMatch(value)
+                  ? ''
+                  : 'Invalid email format';
+          break;
+        case 'Username':
+          _nameError = RegExp(r'^[a-zA-Z0-9]{2,15}$').hasMatch(value)
+              ? ''
+              : 'Username must be 2-15 characters long with no spaces and special characters';
+          break;
+        case 'Password':
+          _passwordError =
+              RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+                          .hasMatch(value) &&
+                      value.replaceAll(RegExp(r'[^@$!%*?&]'), '').length == 1
+                  ? ''
+                  : 'Password must be at least 8 characters long, include a number, and exactly one special character';
+          break;
       }
-      if (label == 'Username' && !RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
-        _nameError = 'Invalid username format';
-      } else if (label == 'Username') {
-        _nameError = '';
-      }
-      if (label == 'Password') {
-        bool passwordValid =
-            RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d @$!%*?&]{8,}$')
-                    .hasMatch(value) &&
-                value.replaceAll(RegExp(r'[^@$!%*?&]'), '').length == 1;
-        _passwordError = passwordValid
-            ? ''
-            : 'Password must be at least 8 characters long, include a \nnumber, and exactly one special character';
-      }
-      if (label == 'Confirm Password' || label == 'Password') {
-        _checkPasswordsMatch();
-      }
+      _checkPasswordsMatch();
     });
   }
 
   void _checkPasswordsMatch() {
-    if (passwordController.text != confirmPasswordController.text) {
-      _confirmPasswordError = 'Passwords do not match';
-    } else {
-      _confirmPasswordError = '';
-    }
+    _confirmPasswordError =
+        passwordController.text == confirmPasswordController.text
+            ? ''
+            : 'Passwords do not match';
   }
 
-  void _register() async {
+  Widget _buildRegisterButton() {
+    return ElevatedButton(
+      onPressed: (!_isFormValid || _isLoading) ? null : _register,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9.0),
+        child: Text(
+          'Register',
+          style: TextStyle(fontSize: 15),
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: Color(0xFF50727B),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackToLoginButton() {
+    return TextButton(
+      onPressed: () => Navigator.pop(context),
+      child: Text(
+        "Back to Login",
+        style: TextStyle(fontSize: 16, color: Colors.white),
+      ),
+    );
+  }
+
+  Future<void> _register() async {
     setState(() {
       _isLoading = true;
     });
@@ -229,13 +225,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       final email = emailController.text.trim();
       final username = userNameController.text.trim().toLowerCase();
 
-      // Check if the email is already taken
       final isEmailTaken = await AuthService().checkUserExists(email);
       if (isEmailTaken) {
         throw 'Email is already taken';
       }
 
-      // Check if the username is already taken
       final isUsernameTaken = await DatabaseService().isUsernameTaken(username);
       if (isUsernameTaken) {
         throw 'Username already taken';
@@ -275,9 +269,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           actions: <Widget>[
             TextButton(
               child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
