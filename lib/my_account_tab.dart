@@ -300,7 +300,7 @@ class MyAccountTab extends StatelessWidget {
             GestureDetector(
               onTap: () => _toggleReaction(feedItem, 'scissor', setState),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 90),
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return ScaleTransition(scale: animation, child: child);
                 },
@@ -380,6 +380,9 @@ class MyAccountTab extends StatelessWidget {
       }
       transaction.update(feedItemRef, {'reactions': currentReactions});
     }).then((_) {
+      // Haptic feedback after successful transaction
+      HapticFeedback.mediumImpact();
+
       setState(() {
         if (feedItem.reactions[userId] == reactionType) {
           feedItem.reactions.remove(userId);

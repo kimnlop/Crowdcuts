@@ -217,7 +217,7 @@ class _FeedTabState extends State<FeedTab> {
     final isActive = feedItem.reactions[userId] == reactionType;
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 100),
       transitionBuilder: (Widget child, Animation<double> animation) {
         return ScaleTransition(scale: animation, child: child);
       },
@@ -259,6 +259,8 @@ class _FeedTabState extends State<FeedTab> {
 
       transaction.update(feedItemRef, {'reactions': currentReactions});
     }).then((_) {
+      HapticFeedback.mediumImpact();
+
       setState(() {
         if (feedItem.reactions[userId] == reactionType) {
           feedItem.reactions.remove(userId);

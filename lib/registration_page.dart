@@ -1,3 +1,5 @@
+// ignore_for_file: sort_child_properties_last, use_build_context_synchronously, use_key_in_widget_constructors, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
 import 'database_service.dart';
@@ -46,7 +48,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 children: <Widget>[
-                  SizedBox(height: 400),
+                  const SizedBox(height: 400),
                   _buildTextField(
                     emailController,
                     'Email',
@@ -54,7 +56,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     _emailError,
                     RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]+$'),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildTextField(
                     userNameController,
                     'Username',
@@ -62,7 +64,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     _nameError,
                     RegExp(r'^[a-zA-Z0-9]{2,15}$'), // No spaces, 2-15 chars
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildTextField(
                     passwordController,
                     'Password',
@@ -74,7 +76,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     togglePasswordVisibility: () =>
                         setState(() => _passwordVisible = !_passwordVisible),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildTextField(
                     confirmPasswordController,
                     'Confirm Password',
@@ -86,9 +88,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     togglePasswordVisibility: () => setState(() =>
                         _confirmPasswordVisible = !_confirmPasswordVisible),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   _buildRegisterButton(),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildBackToLoginButton(),
                 ],
               ),
@@ -97,7 +99,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: Center(child: CircularProgressIndicator()),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -106,7 +108,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Widget _buildBackground() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage("assets/crowdcutsbg.png"),
           fit: BoxFit.cover,
@@ -131,7 +133,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       obscureText: isPassword && !isPasswordVisible,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white),
+        labelStyle: const TextStyle(color: Colors.white),
         filled: true,
         fillColor: Colors.white.withOpacity(0.5),
         border: OutlineInputBorder(
@@ -164,7 +166,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         case 'Username':
           _nameError = RegExp(r'^[a-zA-Z0-9]{2,15}$').hasMatch(value)
               ? ''
-              : 'Username must be 2-15 characters long with no spaces and special characters';
+              : 'Username must be 2-15 characters long with no spaces and \nspecial characters';
           break;
         case 'Password':
           _passwordError =
@@ -172,7 +174,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           .hasMatch(value) &&
                       value.replaceAll(RegExp(r'[^@$!%*?&]'), '').length == 1
                   ? ''
-                  : 'Password must be at least 8 characters long, include a number, and exactly one special character';
+                  : 'Password must be at least 8 characters long, include a number, and \nexactly one special character';
           break;
       }
       _checkPasswordsMatch();
@@ -189,8 +191,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget _buildRegisterButton() {
     return ElevatedButton(
       onPressed: (!_isFormValid || _isLoading) ? null : _register,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 9.0),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 9.0),
         child: Text(
           'Register',
           style: TextStyle(fontSize: 15),
@@ -198,7 +200,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: Color(0xFF50727B),
+        backgroundColor: const Color(0xFF50727B),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -209,7 +211,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   Widget _buildBackToLoginButton() {
     return TextButton(
       onPressed: () => Navigator.pop(context),
-      child: Text(
+      child: const Text(
         "Back to Login",
         style: TextStyle(fontSize: 16, color: Colors.white),
       ),
@@ -264,11 +266,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Error"),
+          title: const Text("Error"),
           content: Text(message),
           actions: <Widget>[
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
