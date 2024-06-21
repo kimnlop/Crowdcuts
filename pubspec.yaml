@@ -1,0 +1,81 @@
+name: Crowdcuts
+description: "Project ni Kim sa ADET WAHAHA"
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^2.27.1
+  firebase_auth: ^4.17.9
+  cloud_firestore: ^4.15.9
+  cupertino_icons: ^1.0.6
+  google_fonts: ^6.2.1
+  image_picker: ^1.0.7
+  firebase_storage: ^11.6.10
+  universal_html: ^2.0.8
+  cached_network_image: ^3.3.1
+  http: ^1.2.1
+  get: ^4.6.6
+  get_storage: ^2.1.1
+  intl: any
+  flutter_localizations:
+    sdk: flutter
+  flutter_secure_storage: ^9.2.2
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  assets:
+    - assets/crowdcutsbg.png
+    - assets/crowdcutslogo.png
+    - assets/crowdcutslogo2.png
+    - assets/male.png
+    - assets/female.png
+    - assets/short.png
+    - assets/medium.png
+    - assets/long.png
+    - assets/oval.png
+    - assets/round.png
+    - assets/square.png
+    - assets/heart.png
+    - assets/diamond.png
+    - assets/straight.png
+    - assets/wavy.png
+    - assets/curly.png
+    - assets/thin.png
+    - assets/mediumDensity.png
+    - assets/thick.png
+    - assets/ClassicSidePart.jpg
+    - assets/AngledBobwithSoftFringe.jpg
+    - assets/BluntBobwithThickFringe.jpg
+    - assets/BroFlow.jpg
+    - assets/BuzzCutwithPrecisionFade.jpg
+    - assets/Chin-LengthBobwithWave.jpg
+    - assets/FullBodiedCurlswithLayers.jpg
+    - assets/GrownOutLayerswithTexture.jpg
+    - assets/LayeredLobwithFace-FramingBangs.jpg
+    - assets/LongCascadingLayers.jpg
+    - assets/Mid-LengthCutwithDynamicLayers.jpg
+    - assets/PompadourFade.jpg
+    - assets/ShortPixiewithTexturedLayers.jpg
+    - assets/SlickedBackUndercut.jpg
+    - assets/SurferShag.jpg
+    - assets/TexturedQuiff.jpg
+    - assets/TousledTopwithThinLayers.jpg
+    - assets/VoluminousWavswithDeepLayers.jpg
+    - assets/cclogo3.png
+
+  uses-material-design: true
