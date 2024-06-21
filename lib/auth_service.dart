@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -37,7 +39,7 @@ class AuthService {
           if (lastFailedLoginAttempt != null) {
             DateTime lastAttemptTime = lastFailedLoginAttempt.toDate();
             DateTime currentTime = DateTime.now();
-            Duration cooldownDuration = Duration(seconds: 30);
+            Duration cooldownDuration = const Duration(seconds: 30);
 
             if (currentTime.difference(lastAttemptTime) < cooldownDuration) {
               throw Exception('Too many attempts. Please wait 30 seconds.');

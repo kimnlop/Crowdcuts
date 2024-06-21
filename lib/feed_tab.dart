@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields
+// ignore_for_file: avoid_print, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields, use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:io';
@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:Crowdcuts/feed_item.dart';
+import 'comment_section.dart';
 
 void main() {
   runApp(MyApp());
@@ -199,6 +200,24 @@ class _FeedTabState extends State<FeedTab> {
                       ],
                     ),
                   ],
+                ),
+                Center(
+                  // Wrap with Center widget
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CommentSection(feedItemId: feedItem.id),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'View Comments',
+                      style: TextStyle(color: Theme.of(context).primaryColor),
+                    ),
+                  ),
                 ),
               ],
             ),

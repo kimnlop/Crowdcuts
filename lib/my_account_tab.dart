@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_key_in_widget_constructors
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -253,7 +255,7 @@ class MyAccountTab extends StatelessWidget {
             GestureDetector(
               onTap: () => _toggleReaction(feedItem, 'like', setState),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 100),
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return ScaleTransition(scale: animation, child: child);
                 },
@@ -276,7 +278,7 @@ class MyAccountTab extends StatelessWidget {
             GestureDetector(
               onTap: () => _toggleReaction(feedItem, 'dope', setState),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 100),
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return ScaleTransition(scale: animation, child: child);
                 },
@@ -300,7 +302,7 @@ class MyAccountTab extends StatelessWidget {
             GestureDetector(
               onTap: () => _toggleReaction(feedItem, 'scissor', setState),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 90),
+                duration: const Duration(milliseconds: 100),
                 transitionBuilder: (Widget child, Animation<double> animation) {
                   return ScaleTransition(scale: animation, child: child);
                 },
