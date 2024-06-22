@@ -80,7 +80,7 @@ class _HaircutRecommenderTabState extends State<HaircutRecommenderTab> {
     super.dispose();
   }
 
-  void _submit() async {
+  void _getRecommendations() async {
     if (_selectedOptions.contains(-1)) {
       // Show an alert if not all options are selected
       showDialog(
@@ -324,7 +324,7 @@ class _HaircutRecommenderTabState extends State<HaircutRecommenderTab> {
                       Padding(
                         padding: const EdgeInsets.only(top: 20.0),
                         child: ElevatedButton(
-                          onPressed: _submit,
+                          onPressed: _getRecommendations,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF50727B),
                             padding: const EdgeInsets.symmetric(

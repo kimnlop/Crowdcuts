@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'comment_section.dart'; // Ensure you import the comment section
-import 'package:Crowdcuts/feed_item.dart';
+import 'package:Crowdcuts/mainUI/feed_item.dart';
 
 class MyAccountTab extends StatelessWidget {
   final Map<String, ImageProvider> _imageCache = {};
@@ -258,7 +258,7 @@ class MyAccountTab extends StatelessWidget {
         Column(
           children: [
             GestureDetector(
-              onTap: () => _toggleReaction(feedItem, 'like', setState),
+              onTap: () => _putReaction(feedItem, 'like', setState),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 100),
                 transitionBuilder: (Widget child, Animation<double> animation) {
@@ -281,7 +281,7 @@ class MyAccountTab extends StatelessWidget {
         Column(
           children: [
             GestureDetector(
-              onTap: () => _toggleReaction(feedItem, 'dope', setState),
+              onTap: () => _putReaction(feedItem, 'dope', setState),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 100),
                 transitionBuilder: (Widget child, Animation<double> animation) {
@@ -305,7 +305,7 @@ class MyAccountTab extends StatelessWidget {
         Column(
           children: [
             GestureDetector(
-              onTap: () => _toggleReaction(feedItem, 'scissor', setState),
+              onTap: () => _putReaction(feedItem, 'scissor', setState),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 100),
                 transitionBuilder: (Widget child, Animation<double> animation) {
@@ -387,7 +387,7 @@ class MyAccountTab extends StatelessWidget {
     }
   }
 
-  void _toggleReaction(
+  void _putReaction(
       FeedItem feedItem, String reactionType, StateSetter setState) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {

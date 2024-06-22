@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'feed_tab.dart';
 import 'haircut_recommender_tab.dart';
 import 'my_account_tab.dart';
-import 'admin_page.dart';
-import 'manage_users_page.dart';
-import 'auth_service.dart';
+import '../adminSide/admin_page.dart';
+import '../adminSide/manage_users_page.dart';
+import '../auth_service.dart';
 import 'login_page.dart'; // Import your login page
 
 class SuccessPage extends StatefulWidget {

@@ -1,6 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables, use_build_context_synchronously, avoid_print
 
-import 'package:Crowdcuts/comment_section.dart';
+import 'package:Crowdcuts/mainUI/comment_section.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

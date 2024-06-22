@@ -10,7 +10,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:Crowdcuts/feed_item.dart';
+import 'package:Crowdcuts/mainUI/feed_item.dart';
 import 'comment_section.dart';
 
 void main() {
@@ -228,7 +228,7 @@ class _FeedTabState extends State<FeedTab> {
       },
       child: GestureDetector(
         key: ValueKey(isActive), // Key for AnimatedSwitcher
-        onTap: () => _toggleReaction(feedItem, reactionType),
+        onTap: () => _putReaction(feedItem, reactionType),
         child: Column(
           children: [
             Icon(
@@ -262,7 +262,7 @@ class _FeedTabState extends State<FeedTab> {
     }
   }
 
-  void _toggleReaction(FeedItem feedItem, String reactionType) {
+  void _putReaction(FeedItem feedItem, String reactionType) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 

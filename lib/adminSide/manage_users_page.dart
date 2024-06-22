@@ -45,6 +45,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
     }
   }
 
+  // Search Users
   void _filterUsers(String query) {
     List<UserItem> filteredList = _users.where((user) {
       return user.userName.toLowerCase().contains(query.toLowerCase()) ||
@@ -79,7 +80,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
     );
   }
 
-  void _confirmToggleAccountStatus(UserItem user) {
+  void _disableUserAccount(UserItem user) {
     showDialog(
       context: context,
       builder: (context) {
@@ -260,7 +261,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                                               : const Color.fromARGB(
                                                   255, 142, 33, 25)),
                                       onPressed: () =>
-                                          _confirmToggleAccountStatus(userItem),
+                                          _disableUserAccount(userItem),
                                     ),
                                   ],
                                 ),
