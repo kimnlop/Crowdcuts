@@ -1,10 +1,11 @@
-// ignore_for_file: avoid_print, use_key_in_widget_constructors
+// ignore_for_file: use_key_in_widget_constructors, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'comment_section.dart'; // Ensure you import the comment section
 import 'package:Crowdcuts/feed_item.dart';
 
 class MyAccountTab extends StatelessWidget {
@@ -98,8 +99,9 @@ class MyAccountTab extends StatelessWidget {
     return StatefulBuilder(
       builder: (context, setState) {
         final ValueNotifier<bool> isEditing = ValueNotifier(feedItem.isEditing);
-        final titleController = TextEditingController(text: feedItem.title);
-        final descriptionController =
+        final TextEditingController titleController =
+            TextEditingController(text: feedItem.title);
+        final TextEditingController descriptionController =
             TextEditingController(text: feedItem.description);
 
         return Container(
@@ -116,134 +118,137 @@ class MyAccountTab extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (feedItem.photoUrl != null)
-                _buildCachedImage(feedItem.photoUrl!),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (feedItem.photoUrl != null)
+                  _buildCachedImage(feedItem.photoUrl!),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ValueListenableBuilder<bool>(
-                          valueListenable: isEditing,
-                          builder: (context, editing, child) {
-                            if (editing) {
-                              return Expanded(
-                                child: TextField(
-                                  controller: titleController,
-                                  maxLength: 20,
-                                  maxLines: 1,
-                                  decoration: InputDecoration(
-                                    labelText: 'Title',
-                                    errorText:
-                                        titleController.text.trim().isEmpty
-                                            ? 'Title cannot be empty'
-                                            : null,
-                                  ),
-                                ),
-                              );
-                            } else {
-                              return Expanded(
-                                child: Text(
-                                  feedItem.title,
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              isEditing.value = true;
-                            } else if (value == 'save') {
-                              if (titleController.text.trim().isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Title cannot be empty or spaces only. Please provide a valid title.'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              } else {
-                                _saveFeedItem(feedItem, titleController.text,
-                                    descriptionController.text);
-                                isEditing.value = false;
-                                setState(() {
-                                  feedItem.title = titleController.text;
-                                  feedItem.description =
-                                      descriptionController.text;
-                                });
-                              }
-                            } else if (value == 'delete') {
-                              _deletePost(context, feedItem);
-                            }
-                          },
-                          itemBuilder: (BuildContext context) {
-                            return [
-                              if (!isEditing.value)
-                                const PopupMenuItem(
-                                    value: 'edit', child: Text('Edit')),
-                              if (isEditing.value)
-                                const PopupMenuItem(
-                                    value: 'save', child: Text('Save')),
-                              const PopupMenuItem(
-                                  value: 'delete', child: Text('Delete')),
-                            ];
-                          },
-                        ),
-                      ],
+                    Expanded(
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: isEditing,
+                        builder: (context, editing, child) {
+                          if (editing) {
+                            return TextField(
+                              controller: titleController,
+                              maxLength: 20,
+                              maxLines: 1,
+                              decoration: InputDecoration(
+                                labelText: 'Title',
+                                errorText: titleController.text.trim().isEmpty
+                                    ? 'Title cannot be empty'
+                                    : null,
+                              ),
+                            );
+                          } else {
+                            return Text(
+                              feedItem.title,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: isEditing,
-                      builder: (context, editing, child) {
-                        if (editing) {
-                          return TextField(
-                            controller: descriptionController,
-                            maxLength: 200,
-                            maxLines: null,
-                            decoration: const InputDecoration(
-                              labelText: 'Description',
-                            ),
-                          );
-                        } else {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'by ${feedItem.userName}',
-                                style: const TextStyle(
-                                    fontSize: 10, color: Colors.grey),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          isEditing.value = true;
+                        } else if (value == 'save') {
+                          if (titleController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Title cannot be empty or spaces only. Please provide a valid title.',
+                                ),
+                                backgroundColor: Colors.red,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                feedItem.description,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              _buildReactionRow(feedItem, context, setState),
-                            ],
-                          );
+                            );
+                          } else {
+                            _saveFeedItem(
+                              feedItem,
+                              titleController.text,
+                              descriptionController.text,
+                            );
+                            isEditing.value = false;
+                            setState(() {
+                              feedItem.title = titleController.text;
+                              feedItem.description = descriptionController.text;
+                            });
+                          }
+                        } else if (value == 'delete') {
+                          _deletePost(context, feedItem);
                         }
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return [
+                          if (!isEditing.value)
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Text('Edit'),
+                            ),
+                          if (isEditing.value)
+                            const PopupMenuItem(
+                              value: 'save',
+                              child: Text('Save'),
+                            ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                        ];
                       },
                     ),
                   ],
                 ),
-              ),
-            ],
+                ValueListenableBuilder<bool>(
+                  valueListenable: isEditing,
+                  builder: (context, editing, child) {
+                    if (editing) {
+                      return TextField(
+                        controller: descriptionController,
+                        maxLength: 200,
+                        maxLines: null,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                        ),
+                      );
+                    } else {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'by ${feedItem.userName}',
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.grey),
+                          ),
+                          Text(
+                            feedItem.description,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 8.0),
+                          _buildReactionAndCommentRow(
+                              feedItem, context, setState),
+                        ],
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildReactionRow(
+  Widget _buildReactionAndCommentRow(
       FeedItem feedItem, BuildContext context, StateSetter setState) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -319,6 +324,34 @@ class MyAccountTab extends StatelessWidget {
               ),
             ),
             Text('${feedItem.scissorCount}'),
+          ],
+        ),
+        Column(
+          children: [
+            FutureBuilder<int>(
+              future: _getCommentCount(feedItem.id),
+              builder: (context, snapshot) {
+                final commentCount = snapshot.data ?? 0;
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CommentSection(feedItemId: feedItem.id),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      const Icon(Icons.comment),
+                      Text('$commentCount'),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ],
@@ -476,6 +509,17 @@ class MyAccountTab extends StatelessWidget {
     );
 
     if (confirmDelete) {
+      // Delete associated comments first
+      final commentsSnapshot = await FirebaseFirestore.instance
+          .collection('comments')
+          .where('feedItemId', isEqualTo: feedItem.id)
+          .get();
+
+      for (var comment in commentsSnapshot.docs) {
+        await comment.reference.delete();
+      }
+
+      // Delete the feed item
       FirebaseFirestore.instance
           .collection('feedItems')
           .doc(feedItem.id)
@@ -498,5 +542,13 @@ class MyAccountTab extends StatelessWidget {
         );
       });
     }
+  }
+
+  Future<int> _getCommentCount(String id) async {
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('comments')
+        .where('feedItemId', isEqualTo: id)
+        .get();
+    return querySnapshot.size;
   }
 }

@@ -283,7 +283,7 @@ class _CommentItemState extends State<CommentItem> {
     return Padding(
       key: ValueKey(commentId),
       padding: EdgeInsets.only(
-          left: widget.level * 16.0 + 8.0, top: 8.0, right: 8.0, bottom: 8.0),
+          left: widget.level * 6.0, top: 8.0, right: 8.0, bottom: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

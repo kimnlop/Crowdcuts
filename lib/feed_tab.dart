@@ -152,77 +152,63 @@ class _FeedTabState extends State<FeedTab> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (feedItem.photoUrl != null) _buildCachedImage(feedItem.photoUrl!),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (feedItem.photoUrl != null)
+              _buildCachedImage(feedItem.photoUrl!),
+            Text(
+              feedItem.title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'by ${feedItem.userName}',
+              style: const TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              feedItem.description,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  feedItem.title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'by ${feedItem.userName}',
-                  style: const TextStyle(fontSize: 10, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  feedItem.description,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Column(
-                      children: [
-                        _buildReactionButton(feedItem, 'like', Icons.favorite,
-                            Icons.favorite_border, Colors.red),
-                        Text('${feedItem.likesCount}'),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        _buildReactionButton(feedItem, 'dope', Icons.whatshot,
-                            Icons.whatshot_outlined, Colors.orange),
-                        Text('${feedItem.dopeCount}'),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        _buildReactionButton(feedItem, 'scissor', Icons.cut,
-                            Icons.cut_outlined, Colors.blue),
-                        Text('${feedItem.scissorCount}'),
-                      ],
-                    ),
-                  ],
-                ),
-                Center(
-                  // Wrap with Center widget
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              CommentSection(feedItemId: feedItem.id),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'View Comments',
-                      style: TextStyle(color: Theme.of(context).primaryColor),
-                    ),
+                _buildReactionButton(feedItem, 'like', Icons.favorite,
+                    Icons.favorite_border, Colors.red),
+                _buildReactionButton(feedItem, 'dope', Icons.whatshot,
+                    Icons.whatshot_outlined, Colors.orange),
+                _buildReactionButton(feedItem, 'scissor', Icons.cut,
+                    Icons.cut_outlined, Colors.blue),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CommentSection(feedItemId: feedItem.id),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      const Icon(Icons.comment),
+                      FutureBuilder<int>(
+                        future: _getCommentCount(feedItem.id),
+                        builder: (context, snapshot) {
+                          final commentCount = snapshot.data ?? 0;
+                          return Text(' $commentCount');
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -243,13 +229,37 @@ class _FeedTabState extends State<FeedTab> {
       child: GestureDetector(
         key: ValueKey(isActive), // Key for AnimatedSwitcher
         onTap: () => _toggleReaction(feedItem, reactionType),
-        child: Icon(
-          isActive ? activeIcon : inactiveIcon,
-          color: isActive ? activeColor : null,
-          size: 28,
+        child: Column(
+          children: [
+            Icon(
+              isActive ? activeIcon : inactiveIcon,
+              color: isActive ? activeColor : null,
+              size: 28,
+            ),
+            const SizedBox(height: 4), // Adjust spacing as needed
+            Text(
+              '${_getReactionCount(feedItem, reactionType)}',
+              key: ValueKey(
+                  '${reactionType}_${feedItem.id}'), // Unique key for Text
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  int _getReactionCount(FeedItem feedItem, String reactionType) {
+    switch (reactionType) {
+      case 'like':
+        return feedItem.likesCount;
+      case 'dope':
+        return feedItem.dopeCount;
+      case 'scissor':
+        return feedItem.scissorCount;
+      default:
+        return 0;
+    }
   }
 
   void _toggleReaction(FeedItem feedItem, String reactionType) {
@@ -561,4 +571,12 @@ class _FeedTabState extends State<FeedTab> {
   void _clearPostingInProgress() {
     _isPostingInProgress = false;
   }
+}
+
+Future<int> _getCommentCount(String id) async {
+  var querySnapshot = await FirebaseFirestore.instance
+      .collection('comments')
+      .where('feedItemId', isEqualTo: id)
+      .get();
+  return querySnapshot.size;
 }

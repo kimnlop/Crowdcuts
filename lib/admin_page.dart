@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, use_key_in_widget_constructors, prefer_final_fields, use_build_context_synchronously, prefer_const_literals_to_create_immutables
 
 import 'dart:async';
+import 'package:Crowdcuts/comment_section.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -114,12 +115,29 @@ class _AdminPageState extends State<AdminPage> {
     );
 
     if (confirmDelete) {
-      await _firestore.collection('feedItems').doc(feedItem.id).delete();
+      // Delete associated comments first
+      final commentsSnapshot = await FirebaseFirestore.instance
+          .collection('comments')
+          .where('feedItemId', isEqualTo: feedItem.id)
+          .get();
+
+      for (var comment in commentsSnapshot.docs) {
+        await comment.reference.delete();
+      }
+
+      // Delete the post
+      await FirebaseFirestore.instance
+          .collection('feedItems')
+          .doc(feedItem.id)
+          .delete();
+
       setState(() {
         _feedItems.remove(feedItem);
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post has been deleted successfully')),
+        const SnackBar(
+            content: Text('The post have been deleted successfully')),
       );
     }
   }
@@ -188,12 +206,55 @@ class _AdminPageState extends State<AdminPage> {
                     onPressed: () => _deletePost(feedItem),
                   ),
                 ),
+                _buildCommentIconAndCount(feedItem),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildCommentIconAndCount(FeedItem feedItem) {
+    return FutureBuilder<int>(
+      future: _getCommentCount(feedItem.id),
+      builder: (context, snapshot) {
+        final commentCount = snapshot.data ?? 0;
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CommentSection(feedItemId: feedItem.id),
+              ),
+            );
+          },
+          child: Center(
+            child: Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Align items in the center
+              children: [
+                const Icon(Icons.comment,
+                    color: Colors.black), // Change color to black
+                const SizedBox(width: 4),
+                Text('$commentCount',
+                    style:
+                        const TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<int> _getCommentCount(String feedItemId) async {
+    final commentsSnapshot = await FirebaseFirestore.instance
+        .collection('comments')
+        .where('feedItemId', isEqualTo: feedItemId)
+        .get();
+    return commentsSnapshot.size;
   }
 
   Widget _buildCachedImage(String photoUrl) {

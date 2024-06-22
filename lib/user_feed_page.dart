@@ -1,5 +1,6 @@
 // ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors_in_immutables, use_build_context_synchronously, avoid_print
 
+import 'package:Crowdcuts/comment_section.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -61,6 +62,17 @@ class UserFeedPage extends StatelessWidget {
 
   void _deletePost(BuildContext context, FeedItem feedItem) async {
     try {
+      // Delete associated comments first
+      final commentsSnapshot = await FirebaseFirestore.instance
+          .collection('comments')
+          .where('feedItemId', isEqualTo: feedItem.id)
+          .get();
+
+      for (var comment in commentsSnapshot.docs) {
+        await comment.reference.delete();
+      }
+
+      // Delete the post
       await FirebaseFirestore.instance
           .collection('feedItems')
           .doc(feedItem.id)
@@ -135,12 +147,56 @@ class UserFeedPage extends StatelessWidget {
                   feedItem.description,
                   style: const TextStyle(fontSize: 16),
                 ),
+                const SizedBox(height: 8),
+                _buildCommentIconAndCount(feedItem, context),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildCommentIconAndCount(FeedItem feedItem, BuildContext context) {
+    return FutureBuilder<int>(
+      future: _getCommentCount(feedItem.id),
+      builder: (context, snapshot) {
+        final commentCount = snapshot.data ?? 0;
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CommentSection(feedItemId: feedItem.id),
+              ),
+            );
+          },
+          child: Center(
+            child: Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Align items in the center
+              children: [
+                const Icon(Icons.comment,
+                    color: Colors.black), // Change color to black
+                const SizedBox(width: 4),
+                Text('$commentCount',
+                    style:
+                        const TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<int> _getCommentCount(String feedItemId) async {
+    final commentsSnapshot = await FirebaseFirestore.instance
+        .collection('comments')
+        .where('feedItemId', isEqualTo: feedItemId)
+        .get();
+    return commentsSnapshot.size;
   }
 
   void _showDeleteDialog(BuildContext context, FeedItem feedItem) {
