@@ -1,6 +1,6 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async'; // Import async library for Timer
 import '../auth_service.dart';
 import 'registration_page.dart';
 import 'success_page.dart'; // Import the SuccessPage widget
@@ -19,6 +19,10 @@ class _LoginPageState extends State<LoginPage>
   String _emailError = ''; // Track email error
   late AnimationController _animationController; // Animation controller
 
+  // Password reset cooldown state
+  bool _isResetPasswordCooldown = false; // Track reset password cooldown
+  Timer? _resetPasswordCooldownTimer; // Timer for reset password cooldown
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +37,7 @@ class _LoginPageState extends State<LoginPage>
     _animationController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    _resetPasswordCooldownTimer?.cancel(); // Cancel timer on dispose
     super.dispose();
   }
 
@@ -93,11 +98,22 @@ class _LoginPageState extends State<LoginPage>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => RegistrationPage()),
+                              builder: (context) => RegistrationPage(),
+                            ),
                           );
                         },
                         child: const Text(
                           "Register",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () {
+                          _resetPassword(emailController.text.trim());
+                        },
+                        child: const Text(
+                          "Forgot Password?",
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
@@ -223,6 +239,108 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  void _resetPassword(String email) async {
+    if (_isResetPasswordCooldown) {
+      _showErrorDialog(
+        "Too many attempts. Please try again in 60 seconds.",
+        titleColor: Colors.orange,
+        backgroundColor: Colors.orange.shade100,
+        icon: Icons.warning,
+      );
+      return;
+    }
+
+    // Show dialog to get email input
+    String? resetEmail = await _showResetPasswordDialog();
+    if (resetEmail == null || resetEmail.isEmpty) {
+      return; // Cancelled or empty email
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: resetEmail);
+      _showErrorDialog(
+        "Password reset email sent. Please check your email inbox.",
+        titleColor: Colors.green,
+        backgroundColor: Colors.green.shade100,
+        icon: Icons.check_circle,
+      );
+
+      // Start cooldown timer
+      _startResetPasswordCooldown();
+    } catch (e) {
+      _showErrorDialog(
+        "Failed to send password reset email. Please check your email address.",
+        titleColor: const Color.fromARGB(255, 142, 33, 25),
+        backgroundColor: Colors.red.shade100,
+        icon: Icons.error,
+      );
+    }
+  }
+
+  Future<String?> _showResetPasswordDialog() async {
+    String email = '';
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false, // Dialog cannot be dismissed
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Forgot Password', style: TextStyle(color: Colors.black)),
+          content: TextFormField(
+            decoration: InputDecoration(
+              hintText: 'Enter your email',
+              fillColor: Colors.white.withOpacity(0.4),
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                borderSide: const BorderSide(color: Colors.white),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.white),
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+            onChanged: (value) {
+              email = value;
+            },
+          ),
+          actions: <Widget>[
+            _buildAlertDialogButton(
+              label: 'Cancel',
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+              backgroundColor: Colors.grey,
+            ),
+            _buildAlertDialogButton(
+              label: 'Send',
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(email); // Return email and close dialog
+              },
+              backgroundColor: Colors.blue,
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white.withOpacity(0.9),
+        );
+      },
+    );
+  }
+
+  void _startResetPasswordCooldown() {
+    setState(() {
+      _isResetPasswordCooldown = true;
+    });
+
+    _resetPasswordCooldownTimer = Timer(Duration(seconds: 60), () {
+      setState(() {
+        _isResetPasswordCooldown = false;
+      });
+    });
+  }
+
   void _showErrorDialog(
     String message, {
     required Color titleColor,
@@ -253,7 +371,8 @@ class _LoginPageState extends State<LoginPage>
             content: Text(
               message,
               style: const TextStyle(
-                  fontSize: 16), // Reduced font size of the message
+                fontSize: 16,
+              ), // Reduced font size of the message
             ),
             backgroundColor: backgroundColor,
             actions: <Widget>[
