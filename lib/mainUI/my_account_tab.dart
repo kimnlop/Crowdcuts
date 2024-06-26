@@ -443,6 +443,7 @@ class MyAccountTab extends StatelessWidget {
     }
   }
 
+  // Load the image from the photoURL
   Future<ImageProvider> _loadImage(String imageUrl) async {
     var response = await http.get(Uri.parse(imageUrl));
     if (response.statusCode == 200) {

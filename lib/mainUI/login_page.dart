@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, sort_child_properties_last
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async'; // Import async library for Timer
@@ -284,7 +286,8 @@ class _LoginPageState extends State<LoginPage>
       barrierDismissible: false, // Dialog cannot be dismissed
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Forgot Password', style: TextStyle(color: Colors.black)),
+          title: const Text('Forgot Password',
+              style: TextStyle(color: Colors.black)),
           content: TextFormField(
             decoration: InputDecoration(
               hintText: 'Enter your email',
@@ -334,7 +337,7 @@ class _LoginPageState extends State<LoginPage>
       _isResetPasswordCooldown = true;
     });
 
-    _resetPasswordCooldownTimer = Timer(Duration(seconds: 60), () {
+    _resetPasswordCooldownTimer = Timer(const Duration(seconds: 60), () {
       setState(() {
         _isResetPasswordCooldown = false;
       });
