@@ -213,6 +213,7 @@ class MyAccountTab extends StatelessWidget {
                             );
                           } else {
                             _saveFeedItem(
+                              context,
                               feedItem,
                               titleController.text,
                               descriptionController.text,
@@ -293,82 +294,103 @@ class MyAccountTab extends StatelessWidget {
       FeedItem feedItem, BuildContext context, StateSetter setState) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Column(
-          children: [
-            GestureDetector(
-              onTap: () => _putReaction(feedItem, 'like', setState),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 100),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return ScaleTransition(scale: animation, child: child);
-                },
-                child: Icon(
-                  feedItem.reactions[userId] == 'like'
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  key: ValueKey(feedItem.reactions[userId] == 'like'),
-                  color:
-                      feedItem.reactions[userId] == 'like' ? Colors.red : null,
-                  size: 28,
-                ),
-              ),
-            ),
-            Text('${feedItem.likesCount}'),
-          ],
+    return Container(
+      margin:
+          const EdgeInsets.symmetric(vertical: 4.0), // Adjust vertical margin
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.0), // Adjusted to smaller radius
+        border: Border.all(
+          color:
+              Colors.grey.withOpacity(0.5), // Add border to match other design
+          width: 1.0,
         ),
-        Column(
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 8.0,
+            vertical: 4.0), // Adjust padding inside the container
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            GestureDetector(
-              onTap: () => _putReaction(feedItem, 'dope', setState),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 100),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return ScaleTransition(scale: animation, child: child);
-                },
-                child: Icon(
-                  feedItem.reactions[userId] == 'dope'
-                      ? Icons.whatshot
-                      : Icons.whatshot_outlined,
-                  key: ValueKey(feedItem.reactions[userId] == 'dope'),
-                  color: feedItem.reactions[userId] == 'dope'
-                      ? Colors.orange
-                      : null,
-                  size: 28,
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _putReaction(feedItem, 'like', setState),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 100),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: Icon(
+                      feedItem.reactions[userId] == 'like'
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      key: ValueKey(feedItem.reactions[userId] == 'like'),
+                      color: feedItem.reactions[userId] == 'like'
+                          ? Colors.red
+                          : null,
+                      size: 24, // Reduced size
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 4), // Add space between icon and count
+                Text('${feedItem.likesCount}'),
+              ],
             ),
-            Text('${feedItem.dopeCount}'),
-          ],
-        ),
-        Column(
-          children: [
-            GestureDetector(
-              onTap: () => _putReaction(feedItem, 'scissor', setState),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 100),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return ScaleTransition(scale: animation, child: child);
-                },
-                child: Icon(
-                  feedItem.reactions[userId] == 'scissor'
-                      ? Icons.cut
-                      : Icons.cut_outlined,
-                  key: ValueKey(feedItem.reactions[userId] == 'scissor'),
-                  color: feedItem.reactions[userId] == 'scissor'
-                      ? Colors.blue
-                      : null,
-                  size: 28,
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _putReaction(feedItem, 'dope', setState),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 100),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: Icon(
+                      feedItem.reactions[userId] == 'dope'
+                          ? Icons.whatshot
+                          : Icons.whatshot_outlined,
+                      key: ValueKey(feedItem.reactions[userId] == 'dope'),
+                      color: feedItem.reactions[userId] == 'dope'
+                          ? Colors.orange
+                          : null,
+                      size: 24, // Reduced size
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 4), // Add space between icon and count
+                Text('${feedItem.dopeCount}'),
+              ],
             ),
-            Text('${feedItem.scissorCount}'),
-          ],
-        ),
-        Column(
-          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _putReaction(feedItem, 'scissor', setState),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 100),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: Icon(
+                      feedItem.reactions[userId] == 'scissor'
+                          ? Icons.cut
+                          : Icons.cut_outlined,
+                      key: ValueKey(feedItem.reactions[userId] == 'scissor'),
+                      color: feedItem.reactions[userId] == 'scissor'
+                          ? Colors.blue
+                          : null,
+                      size: 24, // Reduced size
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4), // Add space between icon and count
+                Text('${feedItem.scissorCount}'),
+              ],
+            ),
             FutureBuilder<int>(
               future: _getCommentCount(feedItem.id),
               builder: (context, snapshot) {
@@ -384,9 +406,11 @@ class MyAccountTab extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Column(
+                  child: Row(
                     children: [
-                      const Icon(Icons.comment),
+                      const Icon(Icons.comment, size: 24), // Reduced size
+                      const SizedBox(
+                          width: 4), // Add space between icon and count
                       Text('$commentCount'),
                     ],
                   ),
@@ -395,7 +419,7 @@ class MyAccountTab extends StatelessWidget {
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -492,13 +516,19 @@ class MyAccountTab extends StatelessWidget {
     });
   }
 
-  void _saveFeedItem(
-      FeedItem feedItem, String newTitle, String newDescription) {
+  void _saveFeedItem(BuildContext context, FeedItem feedItem, String newTitle,
+      String newDescription) {
     FirebaseFirestore.instance.collection('feedItems').doc(feedItem.id).update({
       'title': newTitle,
       'description': newDescription,
     }).then((_) {
-      print('Feed item updated successfully');
+      print('Post updated successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Post updated successfully'),
+          backgroundColor: Colors.green, // Changed to green color
+        ),
+      );
     }).catchError((error) {
       print('Failed to update feed item: $error');
     });
@@ -566,7 +596,7 @@ class MyAccountTab extends StatelessWidget {
           .doc(feedItem.id)
           .delete()
           .then((_) {
-        print('Feed item deleted successfully');
+        print('Your post has been deleted successfully');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Feed item deleted successfully'),

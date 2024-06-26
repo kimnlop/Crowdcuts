@@ -173,39 +173,56 @@ class _FeedTabState extends State<FeedTab> {
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildReactionButton(feedItem, 'like', Icons.favorite,
-                    Icons.favorite_border, Colors.red),
-                _buildReactionButton(feedItem, 'dope', Icons.whatshot,
-                    Icons.whatshot_outlined, Colors.orange),
-                _buildReactionButton(feedItem, 'scissor', Icons.cut,
-                    Icons.cut_outlined, Colors.blue),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CommentSection(feedItemId: feedItem.id),
-                      ),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      const Icon(Icons.comment),
-                      FutureBuilder<int>(
-                        future: _getCommentCount(feedItem.id),
-                        builder: (context, snapshot) {
-                          final commentCount = snapshot.data ?? 0;
-                          return Text(' $commentCount');
-                        },
-                      ),
-                    ],
-                  ),
+            Container(
+              width: double.infinity, // Match parent width
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey
+                      .withOpacity(0.5), // Adjust border color as needed
+                  width: 1.0, // Adjust border width as needed
                 ),
-              ],
+                borderRadius: BorderRadius.circular(
+                    8.0), // Adjust corner radius as needed
+              ),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0, vertical: 4.0), // Adjust padding here
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildReactionButton(feedItem, 'like', Icons.favorite,
+                      Icons.favorite_border, Colors.red),
+                  _buildReactionButton(feedItem, 'dope', Icons.whatshot,
+                      Icons.whatshot_outlined, Colors.orange),
+                  _buildReactionButton(feedItem, 'scissor', Icons.cut,
+                      Icons.cut_outlined, Colors.blue),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CommentSection(feedItemId: feedItem.id),
+                        ),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(Icons.comment),
+                        FutureBuilder<int>(
+                          future: _getCommentCount(feedItem.id),
+                          builder: (context, snapshot) {
+                            final commentCount = snapshot.data ?? 0;
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 4.0),
+                              child: Text('$commentCount'),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -229,14 +246,14 @@ class _FeedTabState extends State<FeedTab> {
       child: GestureDetector(
         key: ValueKey(isActive), // Key for AnimatedSwitcher
         onTap: () => _putReaction(feedItem, reactionType),
-        child: Column(
+        child: Row(
           children: [
             Icon(
               isActive ? activeIcon : inactiveIcon,
               color: isActive ? activeColor : null,
-              size: 28,
+              size: 24,
             ),
-            const SizedBox(height: 4), // Adjust spacing as needed
+            const SizedBox(width: 4), // Adjust spacing between icon and count
             Text(
               '${_getReactionCount(feedItem, reactionType)}',
               key: ValueKey(
