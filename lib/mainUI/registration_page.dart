@@ -177,7 +177,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
                           .isNotEmpty
                   ? ''
-                  : 'Password must consist of at least 12 characters, including one special character, and a combination of both uppercase and lowercase letters.';
+                  : 'Password must consist of at least 12 characters, including\none special character, and a combination of both uppercase\nand lowercase letters.';
           break;
       }
       _checkPasswordsMatch();
