@@ -174,18 +174,16 @@ class _FeedTabState extends State<FeedTab> {
             ),
             const SizedBox(height: 8),
             Container(
-              width: double.infinity, // Match parent width
+              width: double.infinity,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: Colors.grey
-                      .withOpacity(0.5), // Adjust border color as needed
-                  width: 1.0, // Adjust border width as needed
+                  color: Colors.grey.withOpacity(0.5),
+                  width: 1.0,
                 ),
-                borderRadius: BorderRadius.circular(
-                    8.0), // Adjust corner radius as needed
+                borderRadius: BorderRadius.circular(8.0),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0, vertical: 4.0), // Adjust padding here
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -244,7 +242,7 @@ class _FeedTabState extends State<FeedTab> {
         return ScaleTransition(scale: animation, child: child);
       },
       child: GestureDetector(
-        key: ValueKey(isActive), // Key for AnimatedSwitcher
+        key: ValueKey(isActive),
         onTap: () => _putReaction(feedItem, reactionType),
         child: Row(
           children: [
@@ -253,11 +251,10 @@ class _FeedTabState extends State<FeedTab> {
               color: isActive ? activeColor : null,
               size: 24,
             ),
-            const SizedBox(width: 4), // Adjust spacing between icon and count
+            const SizedBox(width: 4),
             Text(
               '${_getReactionCount(feedItem, reactionType)}',
-              key: ValueKey(
-                  '${reactionType}_${feedItem.id}'), // Unique key for Text
+              key: ValueKey('${reactionType}_${feedItem.id}'),
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ],
@@ -385,7 +382,7 @@ class _FeedTabState extends State<FeedTab> {
                   children: [
                     TextField(
                       controller: _titleController,
-                      maxLength: 20, // Limit title to 20 characters
+                      maxLength: 20,
                       decoration: const InputDecoration(
                         hintText: 'Title',
                         border: OutlineInputBorder(),
@@ -517,7 +514,7 @@ class _FeedTabState extends State<FeedTab> {
         'description': _descriptionController.text,
         'userId': user.uid,
         'photoUrl': photoUrl,
-        'uploadDate': FieldValue.serverTimestamp(), // Set upload date
+        'uploadDate': FieldValue.serverTimestamp(),
       });
       _clearControllers();
       Navigator.of(context).pop();
@@ -528,7 +525,6 @@ class _FeedTabState extends State<FeedTab> {
       );
     }
     _enablePosting(setState);
-    // Clear the flag
     _clearPostingInProgress();
   }
 

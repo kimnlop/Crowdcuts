@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:async'; // Import async library for Timer
+import 'dart:async';
 import '../auth_service.dart';
 import 'registration_page.dart';
-import 'success_page.dart'; // Import the SuccessPage widget
+import 'success_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -16,14 +16,13 @@ class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool _isLoading = false; // Track loading state
-  bool _passwordVisible = false; // Track password visibility
-  String _emailError = ''; // Track email error
-  late AnimationController _animationController; // Animation controller
+  bool _isLoading = false;
+  bool _passwordVisible = false;
+  String _emailError = '';
+  late AnimationController _animationController;
 
-  // Password reset cooldown state
-  bool _isResetPasswordCooldown = false; // Track reset password cooldown
-  Timer? _resetPasswordCooldownTimer; // Timer for reset password cooldown
+  bool _isResetPasswordCooldown = false;
+  Timer? _resetPasswordCooldownTimer;
 
   @override
   void initState() {
@@ -39,7 +38,7 @@ class _LoginPageState extends State<LoginPage>
     _animationController.dispose();
     emailController.dispose();
     passwordController.dispose();
-    _resetPasswordCooldownTimer?.cancel(); // Cancel timer on dispose
+    _resetPasswordCooldownTimer?.cancel();
     super.dispose();
   }
 
@@ -173,6 +172,13 @@ class _LoginPageState extends State<LoginPage>
                 )
               : null,
         ),
+        onChanged: (value) {
+          if (label == 'Email') {
+            setState(() {
+              _emailError = '';
+            });
+          }
+        },
       ),
     );
   }
@@ -184,23 +190,27 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _login() async {
-    if (emailController.text.isEmpty) {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+
+    if (email.isEmpty) {
       setState(() {
         _emailError = 'Email is required';
       });
       return;
     }
 
+    if (password.isEmpty) {
+      return;
+    }
+
     setState(() {
       _emailError = '';
-      _isLoading = true; // Start loading
+      _isLoading = true;
     });
 
     try {
-      await AuthService().signIn(
-        emailController.text.trim(),
-        passwordController.text.trim(),
-      );
+      await AuthService().signIn(email, password);
       // Ensure the widget is still mounted before navigating
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -235,7 +245,7 @@ class _LoginPageState extends State<LoginPage>
       // Ensure the widget is still mounted before calling setState
       if (mounted) {
         setState(() {
-          _isLoading = false; // Stop loading
+          _isLoading = false;
         });
       }
     }

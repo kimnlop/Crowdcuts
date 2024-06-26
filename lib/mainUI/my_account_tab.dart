@@ -295,21 +295,17 @@ class MyAccountTab extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return Container(
-      margin:
-          const EdgeInsets.symmetric(vertical: 4.0), // Adjust vertical margin
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8.0), // Adjusted to smaller radius
+        borderRadius: BorderRadius.circular(8.0),
         border: Border.all(
-          color:
-              Colors.grey.withOpacity(0.5), // Add border to match other design
+          color: Colors.grey.withOpacity(0.5),
           width: 1.0,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 8.0,
-            vertical: 4.0), // Adjust padding inside the container
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -331,11 +327,11 @@ class MyAccountTab extends StatelessWidget {
                       color: feedItem.reactions[userId] == 'like'
                           ? Colors.red
                           : null,
-                      size: 24, // Reduced size
+                      size: 24,
                     ),
                   ),
                 ),
-                const SizedBox(width: 4), // Add space between icon and count
+                const SizedBox(width: 4),
                 Text('${feedItem.likesCount}'),
               ],
             ),

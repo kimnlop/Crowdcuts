@@ -141,6 +141,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           borderRadius: BorderRadius.circular(10.0),
         ),
         errorText: errorText.isNotEmpty ? errorText : null,
+        errorStyle: const TextStyle(color: Color.fromARGB(255, 216, 14, 0)),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(isPasswordVisible
@@ -170,11 +171,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           break;
         case 'Password':
           _passwordError =
-              RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+              RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?& ]{12,}$')
                           .hasMatch(value) &&
-                      value.replaceAll(RegExp(r'[^@$!%*?&]'), '').length == 1
+                      value
+                          .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
+                          .isNotEmpty
                   ? ''
-                  : 'Password must be at least 8 characters long, include a number, and \nexactly one special character';
+                  : 'Password must consist of at least 12 characters, including one special character, and a combination of both uppercase and lowercase letters.';
           break;
       }
       _checkPasswordsMatch();
