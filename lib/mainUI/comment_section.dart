@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously
+// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously, unused_element
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +70,7 @@ class _CommentSectionState extends State<CommentSection> {
         .doc(commentId)
         .update({'comment': newComment});
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Comment edited successfully')),
+      const SnackBar(content: Text('Comment edited successfully')),
     );
   }
 
@@ -85,7 +85,7 @@ class _CommentSectionState extends State<CommentSection> {
     for (final doc in snapshot.docs) {
       await _deleteComment(doc.id);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Comment deleted successfully')),
+        const SnackBar(content: Text('Comment deleted successfully')),
       );
     }
 
