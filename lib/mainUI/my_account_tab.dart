@@ -25,67 +25,108 @@ class MyAccountTab extends StatelessWidget {
 
     final String userId = currentUser.uid;
 
-    return Scaffold(
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('feedItems')
-            .where('userId', isEqualTo: userId)
-            .orderBy('uploadDate', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error loading feed items'));
-          }
-
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final feedItems = snapshot.data!.docs;
-
-          if (feedItems.isEmpty) {
-            return const Center(child: Text('No feed items found'));
-          }
-
-          return ListView.builder(
-            itemCount: feedItems.length,
-            itemBuilder: (context, index) {
-              var feedItemData =
-                  feedItems[index].data() as Map<String, dynamic>;
-
-              return FutureBuilder<String>(
-                future: _fetchUserName(feedItemData['userId']),
-                builder: (context, userNameSnapshot) {
-                  if (userNameSnapshot.hasError) {
-                    return ListTile(
-                      title: Text(feedItemData['title'] ?? 'No Title'),
-                      subtitle:
-                          Text(feedItemData['description'] ?? 'No Content'),
-                      trailing: const Icon(Icons.error, color: Colors.red),
-                    );
-                  }
-
-                  if (!userNameSnapshot.hasData) {
-                    return ListTile(
-                      title: Text(feedItemData['title'] ?? 'No Title'),
-                      subtitle:
-                          Text(feedItemData['description'] ?? 'No Content'),
-                      trailing: const CircularProgressIndicator(),
-                    );
-                  }
-
-                  var feedItem = FeedItem.fromSnapshot(
-                    feedItems[index],
-                    userNameSnapshot.data!,
-                  );
-
-                  return _buildFeedItem(feedItem, context);
-                },
-              );
-            },
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Scaffold(
+            body: Center(child: Text('Error loading user data')),
           );
-        },
-      ),
+        }
+
+        if (!snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final String userName = userData['userName'] ?? 'Unknown User';
+
+        return Scaffold(
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  '$userName',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('feedItems')
+                      .where('userId', isEqualTo: userId)
+                      .orderBy('uploadDate', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const Center(
+                          child: Text('Error loading feed items'));
+                    }
+
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final feedItems = snapshot.data!.docs;
+
+                    if (feedItems.isEmpty) {
+                      return const Center(child: Text('No feed items found'));
+                    }
+
+                    return ListView.builder(
+                      itemCount: feedItems.length,
+                      itemBuilder: (context, index) {
+                        var feedItemData =
+                            feedItems[index].data() as Map<String, dynamic>;
+
+                        return FutureBuilder<String>(
+                          future: _fetchUserName(feedItemData['userId']),
+                          builder: (context, userNameSnapshot) {
+                            if (userNameSnapshot.hasError) {
+                              return ListTile(
+                                title:
+                                    Text(feedItemData['title'] ?? 'No Title'),
+                                subtitle: Text(feedItemData['description'] ??
+                                    'No Content'),
+                                trailing:
+                                    const Icon(Icons.error, color: Colors.red),
+                              );
+                            }
+
+                            if (!userNameSnapshot.hasData) {
+                              return ListTile(
+                                title:
+                                    Text(feedItemData['title'] ?? 'No Title'),
+                                subtitle: Text(feedItemData['description'] ??
+                                    'No Content'),
+                                trailing: const CircularProgressIndicator(),
+                              );
+                            }
+
+                            var feedItem = FeedItem.fromSnapshot(
+                              feedItems[index],
+                              userNameSnapshot.data!,
+                            );
+
+                            return _buildFeedItem(feedItem, context);
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, avoid_print, use_key_in_widget_constructors, prefer_const_constructors_in_immutables
+// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -64,59 +64,52 @@ class _CommentSectionState extends State<CommentSection> {
     }
   }
 
-  Widget _buildCommentItem(DocumentSnapshot comment,
-      Map<String, List<DocumentSnapshot>> repliesMap, int level) {
-    return CommentItem(
-      comment: comment,
-      repliesMap: repliesMap,
-      level: level,
-      addReply: _addReply,
-      maxLevel: 5, // Set the max level for nesting
-      onDelete: () {
-        _deleteComment(comment.id);
-      },
-      onEdit: (newComment) {
-        _editComment(comment.id, newComment);
-      },
+  Future<void> _editComment(String commentId, String newComment) async {
+    await FirebaseFirestore.instance
+        .collection('comments')
+        .doc(commentId)
+        .update({'comment': newComment});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Comment edited successfully')),
     );
   }
 
-  Future<void> _editComment(String commentId, String newComment) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('comments')
-          .doc(commentId)
-          .update({'comment': newComment});
+  Future<void> _deleteComment(String commentId) async {
+    // Fetch all comments with the parentId equal to commentId
+    final snapshot = await FirebaseFirestore.instance
+        .collection('comments')
+        .where('parentId', isEqualTo: commentId)
+        .get();
 
-      setState(() {
-        // Update the comment in the UI
-        // This assumes you have a way to update the comment locally or reload data
-      });
-
-      // Optionally, handle success feedback or UI updates
-    } catch (e) {
-      // Handle errors or show error feedback
-      print('Error updating comment: $e');
+    // Recursively delete child comments
+    for (final doc in snapshot.docs) {
+      await _deleteComment(doc.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Comment deleted successfully')),
+      );
     }
+
+    // Delete the parent comment
+    await FirebaseFirestore.instance
+        .collection('comments')
+        .doc(commentId)
+        .delete();
   }
 
-  Future<void> _deleteComment(String commentId) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('comments')
-          .doc(commentId)
-          .delete();
+  Map<String, List<DocumentSnapshot>> _organizeComments(
+      List<DocumentSnapshot> comments) {
+    final commentsMap = <String, DocumentSnapshot>{};
+    final repliesMap = <String, List<DocumentSnapshot>>{};
 
-      setState(() {
-        // Remove the comment from the UI
-        // This assumes you have a way to update the UI locally or reload data
-      });
-
-      // Optionally, handle success feedback or UI updates
-    } catch (e) {
-      // Handle errors or show error feedback
-      print('Error deleting comment: $e');
+    for (var comment in comments) {
+      if (comment['parentId'] == null) {
+        commentsMap[comment.id] = comment;
+      } else {
+        repliesMap.putIfAbsent(comment['parentId'], () => []).add(comment);
+      }
     }
+
+    return repliesMap;
   }
 
   @override
@@ -133,7 +126,6 @@ class _CommentSectionState extends State<CommentSection> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            print("Error fetching comments: ${snapshot.error}");
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -141,53 +133,93 @@ class _CommentSectionState extends State<CommentSection> {
           }
 
           final comments = snapshot.data?.docs ?? [];
-          final commentsMap = <String, DocumentSnapshot>{};
-          final repliesMap = <String, List<DocumentSnapshot>>{};
-
-          for (var comment in comments) {
-            if (comment['parentId'] == null) {
-              commentsMap[comment.id] = comment;
-            } else {
-              repliesMap
-                  .putIfAbsent(comment['parentId'], () => [])
-                  .add(comment);
-            }
-          }
+          final repliesMap = _organizeComments(comments);
 
           return Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  itemCount: commentsMap.length,
-                  itemBuilder: (context, index) {
-                    final comment = commentsMap.values.elementAt(index);
-                    return _buildCommentItem(comment, repliesMap, 0);
-                  },
+                child: CommentList(
+                  comments: comments,
+                  repliesMap: repliesMap,
+                  addReply: _addReply,
+                  deleteComment: _deleteComment,
+                  editComment: _editComment,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _commentController,
-                        decoration: const InputDecoration(
-                          hintText: 'Write a comment...',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: _addComment,
-                    ),
-                  ],
-                ),
+              CommentInputField(
+                controller: _commentController,
+                addComment: _addComment,
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class CommentList extends StatelessWidget {
+  final List<DocumentSnapshot> comments;
+  final Map<String, List<DocumentSnapshot>> repliesMap;
+  final Future<void> Function(String parentId, String commentText) addReply;
+  final Future<void> Function(String commentId) deleteComment;
+  final Future<void> Function(String commentId, String newComment) editComment;
+
+  const CommentList({
+    required this.comments,
+    required this.repliesMap,
+    required this.addReply,
+    required this.deleteComment,
+    required this.editComment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rootComments =
+        comments.where((comment) => comment['parentId'] == null).toList();
+    return ListView.builder(
+      itemCount: rootComments.length,
+      itemBuilder: (context, index) {
+        final comment = rootComments[index];
+        return CommentItem(
+          comment: comment,
+          repliesMap: repliesMap,
+          level: 0,
+          maxLevel: 5,
+          addReply: addReply,
+          deleteComment: deleteComment,
+          editComment: editComment,
+        );
+      },
+    );
+  }
+}
+
+class CommentInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final Future<void> Function() addComment;
+
+  const CommentInputField({
+    required this.controller,
+    required this.addComment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: 'Write a comment...',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: addComment,
+          ),
+        ),
       ),
     );
   }
@@ -199,8 +231,8 @@ class CommentItem extends StatefulWidget {
   final int level;
   final int maxLevel;
   final Future<void> Function(String parentId, String commentText) addReply;
-  final VoidCallback onDelete;
-  final void Function(String newComment) onEdit;
+  final Future<void> Function(String commentId) deleteComment;
+  final Future<void> Function(String commentId, String newComment) editComment;
 
   const CommentItem({
     required this.comment,
@@ -208,8 +240,8 @@ class CommentItem extends StatefulWidget {
     required this.level,
     required this.addReply,
     required this.maxLevel,
-    required this.onDelete,
-    required this.onEdit,
+    required this.deleteComment,
+    required this.editComment,
   });
 
   @override
@@ -221,11 +253,28 @@ class _CommentItemState extends State<CommentItem> {
   bool isExpanded = false;
   bool isEditing = false;
   late String editedCommentText;
+  bool isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     editedCommentText = widget.comment['comment'];
+    _checkAdminRole();
+  }
+
+  Future<void> _checkAdminRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        setState(() {
+          isAdmin = userDoc['role'] == 1;
+        });
+      }
+    }
   }
 
   void _toggleReplies() {
@@ -242,31 +291,122 @@ class _CommentItemState extends State<CommentItem> {
   }
 
   Future<void> _saveEditedComment() async {
-    // Perform the update in Firestore
-    await FirebaseFirestore.instance
-        .collection('comments')
-        .doc(widget.comment.id)
-        .update({'comment': editedCommentText});
-
+    await widget.editComment(widget.comment.id, editedCommentText);
     setState(() {
       isEditing = false;
-      // Update the comment in the UI
-      widget.onEdit(editedCommentText);
     });
   }
 
-  Future<void> _deleteReply(String id) async {
-    try {
-      await FirebaseFirestore.instance.collection('comments').doc(id).delete();
+  Future<void> _showDeleteConfirmationDialog(String commentId) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Comment'),
+          content: const Text('Are you sure you want to delete this comment?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () async {
+                await widget.deleteComment(commentId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-      // Notify the parent widget of deletion
-      widget.onDelete();
+  void _showRepliesModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final replies = widget.repliesMap[widget.comment.id] ?? [];
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            void refreshReplies() {
+              setState(() {
+                // Refresh the replies list
+                widget.repliesMap[widget.comment.id] =
+                    widget.repliesMap[widget.comment.id] ?? [];
+              });
+            }
 
-      // Optionally, handle success feedback or UI updates
-    } catch (e) {
-      // Handle errors or show error feedback
-      print('Error deleting reply: $e');
-    }
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: replies.length,
+                    itemBuilder: (context, index) {
+                      final reply = replies[index];
+                      return CommentItem(
+                        comment: reply,
+                        repliesMap: widget.repliesMap,
+                        level: 0, // Resetting the level for the modal
+                        addReply: (parentId, commentText) async {
+                          await widget.addReply(parentId, commentText);
+                          refreshReplies();
+                        },
+                        maxLevel: widget.maxLevel,
+                        deleteComment: (commentId) async {
+                          await widget.deleteComment(commentId);
+                          refreshReplies();
+                        },
+                        editComment: (commentId, newComment) async {
+                          await widget.editComment(commentId, newComment);
+                          refreshReplies();
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _replyController,
+                          decoration: const InputDecoration(
+                            hintText: 'Write a reply...',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send),
+                        onPressed: () async {
+                          await widget.addReply(
+                              widget.comment.id, _replyController.text);
+                          _replyController.clear();
+                          refreshReplies();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _replyToModal(String parentId, String commentText) async {
+    await widget.addReply(parentId, commentText);
+    setState(() {
+      // Refresh the replies list for this comment item
+      widget.repliesMap[widget.comment.id] =
+          widget.repliesMap[widget.comment.id] ?? [];
+    });
   }
 
   @override
@@ -327,23 +467,40 @@ class _CommentItemState extends State<CommentItem> {
                           ],
                         ),
                         if (FirebaseAuth.instance.currentUser?.uid ==
-                            widget.comment['userId'])
+                                widget.comment['userId'] ||
+                            isAdmin)
                           PopupMenuButton(
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Text('Edit'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Text('Delete'),
-                              ),
-                            ],
+                            itemBuilder: (context) {
+                              List<PopupMenuEntry<String>> menuItems = [];
+                              if (FirebaseAuth.instance.currentUser?.uid ==
+                                  widget.comment['userId']) {
+                                menuItems.add(
+                                  const PopupMenuItem(
+                                    value: 'edit',
+                                    child: Text('Edit'),
+                                  ),
+                                );
+                                menuItems.add(
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                );
+                              } else if (isAdmin) {
+                                menuItems.add(
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                                );
+                              }
+                              return menuItems;
+                            },
                             onSelected: (String value) {
                               if (value == 'edit') {
                                 _toggleEditing();
                               } else if (value == 'delete') {
-                                _deleteReply(commentId);
+                                _showDeleteConfirmationDialog(commentId);
                               }
                             },
                           ),
@@ -382,10 +539,10 @@ class _CommentItemState extends State<CommentItem> {
                       const SizedBox(height: 8),
                       if (replies.isNotEmpty)
                         TextButton(
-                          onPressed: _toggleReplies,
-                          child: Text(isExpanded
-                              ? 'Hide Replies (${replies.length})'
-                              : 'Show Replies (${replies.length})'),
+                          onPressed: widget.level < widget.maxLevel
+                              ? _toggleReplies
+                              : _showRepliesModal,
+                          child: Text('Show Replies (${replies.length})'),
                         ),
                       if (_replyController.text.isNotEmpty || isExpanded)
                         Padding(
@@ -408,7 +565,11 @@ class _CommentItemState extends State<CommentItem> {
                                             commentId, _replyController.text);
                                         _replyController.clear();
                                         setState(() {
-                                          isExpanded = true;
+                                          // Refresh the replies list
+                                          widget.repliesMap[widget.comment.id] =
+                                              widget.repliesMap[
+                                                      widget.comment.id] ??
+                                                  [];
                                         });
                                       },
                                     ),
@@ -433,12 +594,8 @@ class _CommentItemState extends State<CommentItem> {
                   level: widget.level + 1,
                   addReply: widget.addReply,
                   maxLevel: widget.maxLevel,
-                  onDelete: () {
-                    _deleteComment(reply.id);
-                  },
-                  onEdit: (newComment) {
-                    _editComment(reply.id, newComment);
-                  },
+                  deleteComment: widget.deleteComment,
+                  editComment: widget.editComment,
                 );
               }).toList(),
             ),
@@ -447,10 +604,6 @@ class _CommentItemState extends State<CommentItem> {
     );
   }
 }
-
-void _deleteComment(String id) {}
-
-void _editComment(String id, String newComment) {}
 
 class LinePainter extends CustomPainter {
   @override
