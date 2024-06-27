@@ -372,92 +372,101 @@ class _FeedTabState extends State<FeedTab> {
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('New Post',
-                  style: TextStyle(color: Colors.deepPurple)),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                      controller: _titleController,
-                      maxLength: 20,
-                      decoration: const InputDecoration(
-                        hintText: 'Title',
-                        border: OutlineInputBorder(),
+            return WillPopScope(
+              onWillPop: () async => !_isPostingInProgress,
+              child: AlertDialog(
+                title: const Text('New Post',
+                    style: TextStyle(color: Colors.deepPurple)),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _titleController,
+                        maxLength: 20,
+                        decoration: const InputDecoration(
+                          hintText: 'Title',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Stack(
+                        children: [
+                          TextField(
+                            controller: _descriptionController,
+                            maxLength: 200,
+                            minLines: 3,
+                            maxLines: 5,
+                            decoration: const InputDecoration(
+                              hintText: 'Description',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 20,
+                            right: 8,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  onPressed: _isPostingInProgress
+                                      ? null
+                                      : () => _pickImage(
+                                          ImageSource.gallery, setState),
+                                  icon: const Icon(Icons.photo_library),
+                                ),
+                                IconButton(
+                                  onPressed: _isPostingInProgress
+                                      ? null
+                                      : () => _pickImage(
+                                          ImageSource.camera, setState),
+                                  icon: const Icon(Icons.camera_alt),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      _photoController.text.isNotEmpty
+                          ? Text(
+                              _photoName,
+                              style: const TextStyle(color: Colors.green),
+                            )
+                          : const SizedBox(),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color.fromARGB(255, 142, 33, 25),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Stack(
-                      children: [
-                        TextField(
-                          controller: _descriptionController,
-                          maxLength: 200,
-                          minLines: 3,
-                          maxLines: 5,
-                          decoration: const InputDecoration(
-                            hintText: 'Description',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          right: 8,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                onPressed: () =>
-                                    _pickImage(ImageSource.gallery, setState),
-                                icon: const Icon(Icons.photo_library),
-                              ),
-                              IconButton(
-                                onPressed: () =>
-                                    _pickImage(ImageSource.camera, setState),
-                                icon: const Icon(Icons.camera_alt),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    onPressed: _isPostingInProgress
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    _photoController.text.isNotEmpty
-                        ? Text(
-                            _photoName,
-                            style: const TextStyle(color: Colors.green),
-                          )
-                        : const SizedBox(),
-                  ],
-                ),
+                    onPressed:
+                        _isPostingInProgress ? null : () => _post(setState),
+                    child: _isPostingInProgress
+                        ? const CircularProgressIndicator()
+                        : const Text('Post'),
+                  ),
+                ],
               ),
-              actions: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: const Color.fromARGB(255, 142, 33, 25),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed:
-                      _isPosting ? null : () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.green,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: _isPosting ? null : () => _post(setState),
-                  child: _isPosting
-                      ? const CircularProgressIndicator()
-                      : const Text('Post'),
-                ),
-              ],
             );
           },
         );
@@ -517,7 +526,9 @@ class _FeedTabState extends State<FeedTab> {
         'uploadDate': FieldValue.serverTimestamp(),
       });
       _clearControllers();
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
       _scrollController.animateTo(
         0.0,
         duration: const Duration(milliseconds: 500),

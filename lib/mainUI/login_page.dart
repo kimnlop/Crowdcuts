@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, sort_child_properties_last
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
@@ -19,6 +17,7 @@ class _LoginPageState extends State<LoginPage>
   bool _isLoading = false;
   bool _passwordVisible = false;
   String _emailError = '';
+  String _passwordError = '';
   late AnimationController _animationController;
 
   bool _isResetPasswordCooldown = false;
@@ -67,13 +66,15 @@ class _LoginPageState extends State<LoginPage>
                         'Email',
                         TextInputType.emailAddress,
                         _emailError,
+                        RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z.]+$'),
                       ),
                       const SizedBox(height: 20),
                       _buildTextField(
                         passwordController,
                         'Password',
                         TextInputType.visiblePassword,
-                        '',
+                        _passwordError,
+                        null,
                         isPassword: true,
                         isPasswordVisible: _passwordVisible,
                         togglePasswordVisibility: _togglePasswordVisibility,
@@ -98,8 +99,22 @@ class _LoginPageState extends State<LoginPage>
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => RegistrationPage(),
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      RegistrationPage(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                var begin = 0.0;
+                                var end = 1.0;
+                                var tween = Tween(begin: begin, end: end);
+                                var opacityAnimation = animation.drive(tween);
+
+                                return FadeTransition(
+                                  opacity: opacityAnimation,
+                                  child: child,
+                                );
+                              },
                             ),
                           );
                         },
@@ -140,7 +155,8 @@ class _LoginPageState extends State<LoginPage>
     TextEditingController controller,
     String label,
     TextInputType keyboardType,
-    String errorText, {
+    String errorText,
+    RegExp? regExp, {
     bool isPassword = false,
     bool isPasswordVisible = false,
     VoidCallback? togglePasswordVisibility,
@@ -163,6 +179,7 @@ class _LoginPageState extends State<LoginPage>
             borderRadius: BorderRadius.circular(10.0),
           ),
           errorText: errorText.isNotEmpty ? errorText : null,
+          errorStyle: const TextStyle(color: Color.fromARGB(255, 216, 14, 0)),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
@@ -174,9 +191,9 @@ class _LoginPageState extends State<LoginPage>
         ),
         onChanged: (value) {
           if (label == 'Email') {
-            setState(() {
-              _emailError = '';
-            });
+            _validateEmail(value.trim());
+          } else if (label == 'Password') {
+            _validatePassword(value);
           }
         },
       ),
@@ -189,9 +206,30 @@ class _LoginPageState extends State<LoginPage>
     });
   }
 
+  void _validateEmail(String value) {
+    setState(() {
+      _emailError = RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z.]+$').hasMatch(value)
+          ? ''
+          : 'Invalid email format';
+    });
+  }
+
+  void _validatePassword(String value) {
+    setState(() {
+      _passwordError =
+          RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?& ]{12,}$')
+                      .hasMatch(value) &&
+                  value
+                      .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
+                      .isNotEmpty
+              ? ''
+              : 'Password must consist of at least 12 characters, including special \ncharacters, and a combination of both uppercaseand lowercase\nletters.';
+    });
+  }
+
   void _login() async {
     String email = emailController.text.trim();
-    String password = passwordController.text.trim();
+    String password = passwordController.text;
 
     if (email.isEmpty) {
       setState(() {

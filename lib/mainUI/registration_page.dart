@@ -1,5 +1,6 @@
 // ignore_for_file: sort_child_properties_last, use_build_context_synchronously, use_key_in_widget_constructors, library_private_types_in_public_api
 
+import 'package:Crowdcuts/mainUI/login_page.dart';
 import 'package:flutter/material.dart';
 import '../auth_service.dart';
 import '../database_service.dart';
@@ -160,7 +161,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
       switch (label) {
         case 'Email':
           _emailError =
-              RegExp(r'^[\w.-]+@[a-zA-Z]+\.[a-zA-Z]+$').hasMatch(value)
+              RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+                      .hasMatch(value)
                   ? ''
                   : 'Invalid email format';
           break;
@@ -177,7 +179,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
                           .isNotEmpty
                   ? ''
-                  : 'Password must consist of at least 12 characters, including\none special character, and a combination of both uppercase\nand lowercase letters.';
+                  : 'Password must consist of at least 12 characters, including special \ncharacters, and a combination of both uppercaseand lowercase\nletters.';
           break;
       }
       _checkPasswordsMatch();
@@ -213,7 +215,27 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   Widget _buildBackToLoginButton() {
     return TextButton(
-      onPressed: () => Navigator.pop(context),
+      onPressed: () {
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                LoginPage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              var begin = 0.0;
+              var end = 1.0;
+              var tween = Tween(begin: begin, end: end);
+              var opacityAnimation = animation.drive(tween);
+
+              return FadeTransition(
+                opacity: opacityAnimation,
+                child: child,
+              );
+            },
+          ),
+        );
+      },
       child: const Text(
         "Back to Login",
         style: TextStyle(fontSize: 16, color: Colors.white),
@@ -242,7 +264,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       final userCredential = await AuthService().signUp(
         email,
-        passwordController.text.trim(),
+        passwordController.text,
       );
       await DatabaseService().addUser(userCredential.user!.uid, {
         'email': email,
