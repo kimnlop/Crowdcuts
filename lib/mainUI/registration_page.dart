@@ -128,31 +128,37 @@ class _RegistrationPageState extends State<RegistrationPage> {
     bool isPasswordVisible = false,
     VoidCallback? togglePasswordVisibility,
   }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: isPassword && !isPasswordVisible,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.5),
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.circular(10.0),
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.9,
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: isPassword && !isPasswordVisible,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white),
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.5),
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          errorText: errorText.isNotEmpty ? errorText : null,
+          errorStyle: const TextStyle(
+            color: Color.fromARGB(255, 216, 14, 0),
+            fontSize: 14,
+          ),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(isPasswordVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off),
+                  onPressed: togglePasswordVisibility,
+                )
+              : null,
         ),
-        errorText: errorText.isNotEmpty ? errorText : null,
-        errorStyle: const TextStyle(color: Color.fromARGB(255, 216, 14, 0)),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(isPasswordVisible
-                    ? Icons.visibility
-                    : Icons.visibility_off),
-                onPressed: togglePasswordVisibility,
-              )
-            : null,
+        onChanged: (value) => _validateField(label, value),
       ),
-      onChanged: (value) => _validateField(label, value),
     );
   }
 
@@ -169,7 +175,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         case 'Username':
           _nameError = RegExp(r'^[a-zA-Z0-9]{2,15}$').hasMatch(value)
               ? ''
-              : 'Username must be 2-15 characters long with no spaces and \nspecial characters';
+              : 'At least 2-15 characters, no spaces, and special\ncharacters.';
           break;
         case 'Password':
           _passwordError =
@@ -179,7 +185,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
                           .isNotEmpty
                   ? ''
-                  : 'Password must consist of at least 12 characters, including special \ncharacters, and a combination of both uppercaseand lowercase\nletters.';
+                  : 'At least 12 alphanumeric, mixed case, and special \ncharacters.';
           break;
       }
       _checkPasswordsMatch();

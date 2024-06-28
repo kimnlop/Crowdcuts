@@ -162,7 +162,7 @@ class _LoginPageState extends State<LoginPage>
     VoidCallback? togglePasswordVisibility,
   }) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.8,
+      width: MediaQuery.of(context).size.width * 0.9,
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
@@ -179,7 +179,10 @@ class _LoginPageState extends State<LoginPage>
             borderRadius: BorderRadius.circular(10.0),
           ),
           errorText: errorText.isNotEmpty ? errorText : null,
-          errorStyle: const TextStyle(color: Color.fromARGB(255, 216, 14, 0)),
+          errorStyle: const TextStyle(
+            color: Color.fromARGB(255, 216, 14, 0),
+            fontSize: 14, // Increased font size
+          ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
@@ -223,7 +226,7 @@ class _LoginPageState extends State<LoginPage>
                       .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
                       .isNotEmpty
               ? ''
-              : 'Password must consist of at least 12 characters, including special \ncharacters, and a combination of both uppercaseand lowercase\nletters.';
+              : 'At least 12 alphanumeric, mixed case, and special \ncharacters.';
     });
   }
 
