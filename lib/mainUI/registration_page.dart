@@ -179,13 +179,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           break;
         case 'Password':
           _passwordError =
-              RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?& ]{12,}$')
+              RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+.,])[A-Za-z\d!@#$%^&*()_+., ]{12,}$')
                           .hasMatch(value) &&
                       value
                           .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
                           .isNotEmpty
                   ? ''
-                  : 'At least 12 alphanumeric, mixed case, and special \ncharacters.';
+                  : 'At least 12 alphanumeric, mixed case, and special \ncharacter from (!@#\$%^&*()_+.,).';
           break;
       }
       _checkPasswordsMatch();

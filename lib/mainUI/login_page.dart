@@ -218,13 +218,13 @@ class _LoginPageState extends State<LoginPage>
   void _validatePassword(String value) {
     setState(() {
       _passwordError =
-          RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?& ]{12,}$')
+          RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+.,])[A-Za-z\d!@#$%^&*()_+., ]{12,}$')
                       .hasMatch(value) &&
                   value
                       .replaceAll(RegExp(r'[^a-zA-Z\d@$!%*?& ]'), '')
                       .isNotEmpty
               ? ''
-              : 'At least 12 alphanumeric, mixed case, and special \ncharacters.';
+              : 'At least 12 alphanumeric, mixed case, and special \ncharacter from (!@#\$%^&*()_+.,).';
     });
   }
 
@@ -250,7 +250,6 @@ class _LoginPageState extends State<LoginPage>
 
     try {
       await AuthService().signIn(email, password);
-      // Ensure the widget is still mounted before navigating
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
