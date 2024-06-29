@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, sort_child_properties_last
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
@@ -20,9 +22,6 @@ class _LoginPageState extends State<LoginPage>
   String _passwordError = '';
   late AnimationController _animationController;
 
-  bool _isResetPasswordCooldown = false;
-  Timer? _resetPasswordCooldownTimer;
-
   @override
   void initState() {
     super.initState();
@@ -37,7 +36,6 @@ class _LoginPageState extends State<LoginPage>
     _animationController.dispose();
     emailController.dispose();
     passwordController.dispose();
-    _resetPasswordCooldownTimer?.cancel();
     super.dispose();
   }
 
@@ -283,7 +281,6 @@ class _LoginPageState extends State<LoginPage>
         );
       }
     } finally {
-      // Ensure the widget is still mounted before calling setState
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -293,16 +290,6 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _resetPassword(String email) async {
-    if (_isResetPasswordCooldown) {
-      _showErrorDialog(
-        "Too many attempts. Please try again in 60 seconds.",
-        titleColor: Colors.orange,
-        backgroundColor: Colors.orange.shade100,
-        icon: Icons.warning,
-      );
-      return;
-    }
-
     // Show dialog to get email input
     String? resetEmail = await _showResetPasswordDialog();
     if (resetEmail == null || resetEmail.isEmpty) {
@@ -317,9 +304,6 @@ class _LoginPageState extends State<LoginPage>
         backgroundColor: Colors.green.shade100,
         icon: Icons.check_circle,
       );
-
-      // Start cooldown timer
-      _startResetPasswordCooldown();
     } catch (e) {
       _showErrorDialog(
         "Failed to send password reset email. Please check your email address.",
@@ -381,18 +365,6 @@ class _LoginPageState extends State<LoginPage>
         );
       },
     );
-  }
-
-  void _startResetPasswordCooldown() {
-    setState(() {
-      _isResetPasswordCooldown = true;
-    });
-
-    _resetPasswordCooldownTimer = Timer(const Duration(seconds: 60), () {
-      setState(() {
-        _isResetPasswordCooldown = false;
-      });
-    });
   }
 
   void _showErrorDialog(
