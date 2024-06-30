@@ -48,7 +48,7 @@ class _HaircutRecommenderTabState extends State<HaircutRecommenderTab> {
     "Buzz Cut with Precision Fade": "assets/BuzzCutwithPrecisionFade.jpg",
     "Pompadour Fade": "assets/PompadourFade.jpg",
     "Angled Bob with Soft Fringe": "assets/AngledBobwithSoftFringe.jpg",
-    "Surfer Shag": "SurferShag.jpg",
+    "Surfer Shag": "assets/SurferShag.jpg",
     "Voluminous Waves with Deep Layers":
         "assets/VoluminousWavswithDeepLayers.jpg",
     "Full Bodied Curls with Layers": "assets/FullBodiedCurlswithLayers.jpg",
