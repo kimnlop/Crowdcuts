@@ -255,7 +255,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
 
     try {
-      final email = emailController.text.trim();
+      final email = emailController.text.trim().toLowerCase();
       final username = userNameController.text.trim().toLowerCase();
 
       final isEmailTaken = await AuthService().checkUserExists(email);
